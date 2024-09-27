@@ -28,7 +28,7 @@
 // @grant         GM_xmlhttpRequest
 // @grant         GM_notification
 // @grant         GM_addStyle
-// @connect       localhost
+// @connect       eas.lol
 // @run-at        document-start
 // @downloadURL   https://eas.lol/data/eas.lol.user.js
 // @updateURL     https://eas.lol/data/eas.lol.user.js
@@ -41,7 +41,7 @@
 
     const currentUrl = window.location.href;
 
-    const easBypassApiUrl = 'http://eas.lol/bypass'; 
+    const easBypassApiUrl = 'http://eas.lol/bypass';
 
     const bypassUrl = (url) => {
         GM_xmlhttpRequest({

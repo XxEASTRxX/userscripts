@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name          EASx Bypasser
 // @namespace     eas.lol
-// @author        eas.lol 
-// @version       0.4
+// @version       0.5
 // @description   Automatically bypass ad-links using the EASx API and get to your destination without ads!
 // @include       /^https?:\/\/linkvertise\.com\/\d*\/\S*/
 // @include       /^https?:\/\/\S*[.]*\/s\?\S*/
@@ -44,11 +43,10 @@
     // Get the current URL
     const currentUrl = window.location.href;
 
-    // Define both API URLs
+    // Define EAS Pro Bypass API URL
     const easBypassApiUrl = 'http://localhost:8080/bypass';  // EAS Pro Bypass server
-    const bypassVipApiUrl = 'https://api.bypass.vip/bypass'; // BYPASS.VIP API
 
-    // Function to send URL for bypassing through EAS Pro Bypass first, then fall back to BYPASS.VIP
+    // Function to send URL for bypassing through EAS Pro Bypass
     const bypassUrl = (url) => {
         GM_xmlhttpRequest({
             method: 'POST',
@@ -60,57 +58,30 @@
                 if (response.status === 200) {
                     const data = JSON.parse(response.responseText);
                     if (data.result) {
-                        // If bypass is successful, redirect the user
+                        console.log('EAS Pro Bypass successful. Redirecting to:', data.result);
                         window.location.href = data.result;
                     } else {
-                        // If EAS Pro Bypass fails, try BYPASS.VIP API
-                        bypassVipFallback(url);
-                    }
-                } else {
-                    // If EAS Pro Bypass fails, try BYPASS.VIP API
-                    bypassVipFallback(url);
-                }
-            },
-            onerror: function(error) {
-                console.error("Error in EAS Bypass: ", error);
-                bypassVipFallback(url);
-            }
-        });
-    };
-
-    // Fallback function to use BYPASS.VIP API if EAS Pro Bypass fails
-    const bypassVipFallback = (url) => {
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: `${bypassVipApiUrl}?url=${encodeURIComponent(url)}`,
-            headers: { 'Content-Type': 'application/json' },
-            onload: function(response) {
-                console.log("BYPASS.VIP Response: ", response);
-                if (response.status === 200) {
-                    const data = JSON.parse(response.responseText);
-                    if (data.status === 'success') {
-                        // Redirect to the bypassed URL from BYPASS.VIP
-                        window.location.href = data.result;
-                    } else {
+                        console.warn('EAS Pro Bypass failed.');
                         GM_notification({
-                            title: 'EAS Pro + BYPASS.VIP Bypass Failed',
+                            title: 'EAS Pro Bypass Failed',
                             text: 'Unable to bypass the URL.',
                             timeout: 5000
                         });
                     }
                 } else {
+                    console.warn('EAS Pro Bypass failed with status:', response.status);
                     GM_notification({
-                        title: 'EAS Pro + BYPASS.VIP Bypass Error',
-                        text: 'Failed to connect to BYPASS.VIP.',
+                        title: 'EAS Pro Bypass Error',
+                        text: 'Failed to connect to EAS Pro Bypass server.',
                         timeout: 5000
                     });
                 }
             },
             onerror: function(error) {
-                console.error("Error in BYPASS.VIP: ", error);
+                console.error("Error in EAS Bypass:", error);
                 GM_notification({
-                    title: 'BYPASS.VIP Error',
-                    text: 'Failed to bypass the URL using BYPASS.VIP.',
+                    title: 'EAS Pro Bypass Error',
+                    text: 'Failed to bypass the URL using EAS Pro Bypass.',
                     timeout: 5000
                 });
             }

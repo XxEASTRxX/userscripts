@@ -25,7 +25,6 @@
 // @include       /^https?:\/\/\work[.]ink\/\S*/
 // @include       /^https?:\/\/\workink[.]net\/\S*/
 // @include       /^https?:\/\/\cety[.]app\/\S*/
-// @include       /^https?:\/\/flux\.li\/android\/external\/start\.php\?HWID=\S*/
 // @grant         GM_xmlhttpRequest
 // @grant         GM_notification
 // @grant         GM_addStyle

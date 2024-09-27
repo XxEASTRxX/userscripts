@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name          EASx Bypasser
 // @namespace     eas.lol
+// @author        eas.lol 
 // @version       0.4
 // @description   Automatically bypass ad-links using the EASx API and get to your destination without ads!
 // @include       /^https?:\/\/linkvertise\.com\/\d*\/\S*/
@@ -31,8 +32,8 @@
 // @grant         GM_addStyle
 // @connect       localhost
 // @run-at        document-start
-// @downloadURL   https://github.com/XxEASTRxX/userscripts/raw/refs/heads/main/eas.lol.user.js
-// @updateURL     https://github.com/XxEASTRxX/userscripts/raw/refs/heads/main/eas.lol.user.js
+// @downloadURL   https://eas.lol/data/eas.lol.user.js
+// @updateURL     https://eas.lol/data/eas.lol.user.js
 // @homepageURL   https://eas.lol/bypass
 // @icon          https://images-ext-1.discordapp.net/external/ytuMH8lC37HyWvwTocddNGChuItDTmCLVam5KO25Geg/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/1271386553855381547/a27d955e374ba79a7a916ea484b03e06.png?format=webp&quality=lossless&width=676&height=676
 // ==/UserScript==

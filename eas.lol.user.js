@@ -3,10 +3,10 @@
 // @namespace     eas.lol
 // @version       0.5
 // @description   Automatically bypass ad-links using the EASx API and get to your destination without ads!
-// @include       /^https?:\/\/linkvertise\.com\/\d*\/\S*/
 // @include       /^https?:\/\/\S*[.]*\/s\?\S*/
 // @include       /^https?:\/\/\paster[.]so\/\S*/
 // @include       /^https?:\/\/\boost[.]ink\/\S*/
+// @include       /^https?:\/\/linkvertise\.com\/\d*\/\S*/
 // @include       /^https?:\/\/\mboost[.]me\/\S*/
 // @include       /^https?:\/\/\bst[.]gg\/\S*/
 // @include       /^https?:\/\/\booo[.]st\/\S*/
@@ -30,8 +30,8 @@
 // @grant         GM_addStyle
 // @connect       eas.lol
 // @run-at        document-start
-// @downloadURL   https://eas.lol/data/eas.lol.user.js
-// @updateURL     https://eas.lol/data/eas.lol.user.js
+// @downloadURL   https://github.com/XxEASTRxX/userscripts/raw/refs/heads/main/eas.lol.user.js
+// @updateURL     https://github.com/XxEASTRxX/userscripts/raw/refs/heads/main/eas.lol.user.js
 // @homepageURL   https://eas.lol/bypass
 // @icon          https://images-ext-1.discordapp.net/external/ytuMH8lC37HyWvwTocddNGChuItDTmCLVam5KO25Geg/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/1271386553855381547/a27d955e374ba79a7a916ea484b03e06.png?format=webp&quality=lossless&width=676&height=676
 // ==/UserScript==
@@ -41,7 +41,8 @@
 
     const currentUrl = window.location.href;
 
-    const easBypassApiUrl = 'http://eas.lol/bypass';
+    // Updated to use HTTPS
+    const easBypassApiUrl = 'https://eas.lol/bypass';
 
     const bypassUrl = (url) => {
         GM_xmlhttpRequest({
@@ -52,15 +53,36 @@
             onload: function(response) {
                 console.log("EAS Bypass Response: ", response);
                 if (response.status === 200) {
-                    const data = JSON.parse(response.responseText);
-                    if (data.result) {
-                        console.log('EAS Pro Bypass successful. Redirecting to:', data.result);
-                        window.location.href = data.result;
+                    const contentTypeMatch = response.responseHeaders.match(/content-type:\s*(.*)/i);
+                    const contentType = contentTypeMatch ? contentTypeMatch[1].toLowerCase() : '';
+
+                    if (contentType.includes('application/json')) {
+                        try {
+                            const data = JSON.parse(response.responseText);
+                            if (data.result) {
+                                console.log('EAS Pro Bypass successful. Redirecting to:', data.result);
+                                window.location.href = data.result;
+                            } else {
+                                console.warn('EAS Pro Bypass failed.');
+                                GM_notification({
+                                    title: 'EAS Pro Bypass Failed',
+                                    text: 'Unable to bypass the URL.',
+                                    timeout: 5000
+                                });
+                            }
+                        } catch (parseError) {
+                            console.error("JSON Parsing Error:", parseError);
+                            GM_notification({
+                                title: 'EAS Pro Bypass Error',
+                                text: 'Invalid response format.',
+                                timeout: 5000
+                            });
+                        }
                     } else {
-                        console.warn('EAS Pro Bypass failed.');
+                        console.warn('Unexpected Content-Type:', contentType);
                         GM_notification({
-                            title: 'EAS Pro Bypass Failed',
-                            text: 'Unable to bypass the URL.',
+                            title: 'EAS Pro Bypass Error',
+                            text: 'Unexpected response format.',
                             timeout: 5000
                         });
                     }

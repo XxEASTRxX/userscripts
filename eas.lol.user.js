@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          EASx Bypasser
 // @namespace     eas.lol
-// @version       0.5
-// @description   Automatically bypass ad-links using the EASx API and get to your destination without ads!
+// @version       0.6
+// @description   Automatically bypass ad-links and get to your destination without ads!
 // @include       /^https?:\/\/\S*[.]*\/s\?\S*/
 // @include       /^https?:\/\/\paster[.]so\/\S*/
 // @include       /^https?:\/\/\boost[.]ink\/\S*/

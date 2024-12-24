@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name          EASx Bypasser
+// @name          EASx Bypasser v2
 // @namespace     eas.lol
 // @version       0.6
 // @description   Automatically bypass ad-links and get to your destination without ads!
@@ -46,7 +46,7 @@
     const waitTime = 10000; // Wait time in milliseconds for bypass protections.
 
     const bypassUrl = (url) => {
-        const requestUrl = `${easBypassApiUrl}?url=${encodeURIComponent(url)}`;
+        const requestUrl = `${easBypassApiUrl}?url=${(url)}`;
         GM_xmlhttpRequest({
             method: 'GET',
             url: requestUrl,

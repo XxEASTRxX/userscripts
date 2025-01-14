@@ -1,8 +1,9 @@
 // ==UserScript==
-// @name          EASx Bypass
-// @namespace     EASx
-// @version       0.0.0.0.0.0.0.0.1
-// @description   Bypass ad-links using the EASx API and get to your destination without ads!
+// @name          EAS.LOL BYPASSER
+// @namespace     eas.lol
+// @version       1.2
+// @author        EASx
+// @description   Bypass ad-links using the eas.lol / easx API and get to your destination without ads!
 // @match         *://mega-guy.com/*
 // @match         *://loot-link.com/*
 // @match         *://best-links.org/*
@@ -190,18 +191,37 @@
 // @match         *://link.rbscripts.net/*
 // @downloadURL   https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
 // @updateURL     https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
-// @homepageURL   https://eas.lol/
-// @icon          https://www.google.com/s2/favicons?domain=eas.lol&sz=64
-// @run-at        document-idle
+// @homepageURL   https://eas.lol
+// @icon          https://i.eas-x.com/FtWEhV-Gj45KW9k8o_CDy
+// @run-at document-start
 // ==/UserScript==
 
 (async () => {
     const config = {
-        time: 10,
+        time: 10, // Wait time to avoid detections (Increase this to 30+ seconds to be extra safe from key system bypass protections)
     };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const redirectUrl = `https://usr.eas-x.com/userscript?url=${encodeURIComponent(window.location.href)}&time=${config.time}&key=${encodeURIComponent(config.key)}`;
+    const originalCreateElement = document.createElement.bind(document);
+    document.createElement = function(elementName) {
+        const element = originalCreateElement(elementName);
+        if (elementName.toLowerCase() === 'script') {
+            element.setAttribute('type', 'text/plain');
+        }
+        return element;
+    };
 
-    window.location.assign(redirectUrl);
+    document.documentElement.innerHTML = `<html><head><title>EAS.LOL USERSCRIPT</title><link rel="stylesheet" href="https:///bypass.vip/assets/css/styles.css"></head><body class="userscript"><h1>eas.lol userscript</h1><h2>redirecting...</h2></body></html>`;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect')
+
+    if (redirectUrl && redirectUrl.includes('https://flux.li/android/external/main.php')) {
+        document.body.innerHTML = `<h1>eas.lol userscript</h1><h2>Fluxus implements some extra security checks to detect bypasses so we can't automatically redirect you.</h2><h3><a href="${redirectUrl}">Click here to redirect</a></h3>`;
+        return;
+    } else if(redirectUrl) {
+        location.href = redirectUrl
+        return;
+    }
+    location.href = `https://usr.eas-x.com/userscript?url=${encodeURIComponent(location.href)}&time=${config.time}`
+    return;
 })();

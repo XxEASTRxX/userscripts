@@ -188,8 +188,8 @@
 // @match         *://esohasl.net/*
 // @match         *://rbscripts.net/*
 // @match         *://link.rbscripts.net/*
-// @downloadURL   https://raw.githubusercontent.com/bypass-vip/userscript/master/bypass-vip.user.js
-// @updateURL     https://raw.githubusercontent.com/bypass-vip/userscript/master/bypass-vip.user.js
+// @downloadURL   https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
+// @updateURL     https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
 // @homepageURL   https://eas.lol/
 // @icon          https://www.google.com/s2/favicons?domain=eas.lol&sz=64
 // @run-at        document-idle

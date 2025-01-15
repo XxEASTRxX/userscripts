@@ -200,7 +200,7 @@
 (async () => {
 
     const config = {
-        time: 1,
+        time: 10,
         endpoint: 'https://usr.eas-x.com'
     };
 

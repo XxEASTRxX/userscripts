@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EASx Bypass V2
 // @namespace    EASx
-// @version      2.0
+// @version      2.1
 // @description  Bypass ad-links using the EASx API
 // @author       EASx
 // @match         *://mega-guy.com/*

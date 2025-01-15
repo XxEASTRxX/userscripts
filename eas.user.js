@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EASx Bypass V2
 // @namespace    EASx
-// @version      2.1
+// @version      2.4
 // @description  Bypass ad-links using the EASx API
 // @author       EASx
 // @match         *://linkvertise.com/*

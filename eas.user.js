@@ -4,6 +4,7 @@
 // @version      2.1
 // @description  Bypass ad-links using the EASx API
 // @author       EASx
+// @match         *://linkvertise.com/*
 // @match         *://mega-guy.com/*
 // @match         *://loot-link.com/*
 // @match         *://best-links.org/*
@@ -199,7 +200,7 @@
 (async () => {
 
     const config = {
-        time: 10,
+        time: 1,
         endpoint: 'https://usr.eas-x.com'
     };
 
@@ -211,15 +212,27 @@
         return;
     }
 
-    if (window.location.hostname === 'linkvertise.com' && window.location.search.includes('url=')) {
-        const params = new URLSearchParams(window.location.search);
-        const targetUrl = params.get('url');
-        if (targetUrl) {
-            setTimeout(() => {
-                window.location.href = decodeURIComponent(targetUrl);
-            }, 100);
-            return;
+    const targetUrlParam = urlParams.get('url');
+    let targetUrl = targetUrlParam;
+
+    if (targetUrlParam) {
+        try {
+            // Decode the URL until it no longer changes after decoding
+            let decodedUrl = decodeURIComponent(targetUrl);
+            while (decodedUrl !== targetUrl) {
+                targetUrl = decodedUrl;
+                decodedUrl = decodeURIComponent(targetUrl);
+            }
+        } catch (e) {
+            console.error('Error decoding URL parameter:', e);
         }
+    }
+
+    if (window.location.hostname === 'linkvertise.com' && targetUrl) {
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 100);
+        return;
     }
 
     Object.defineProperty(Document.prototype, 'referrer', {

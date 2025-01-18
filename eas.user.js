@@ -190,8 +190,8 @@
 // @match         *://esohasl.net/*
 // @match         *://rbscripts.net/*
 // @match         *://link.rbscripts.net/*
-// @downloadURL  https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
-// @updateURL    https://raw.githubusercontent.com/XxEASTRxX/userscripts/refs/heads/main/newscript.js
+// @downloadURL  https://github.com/XxEASTRxX/userscripts/raw/main/eas.user.js
+// @updateURL    https://github.com/XxEASTRxX/userscripts/raw/main/eas.user.js
 // @homepageURL  https://eas.lol
 // @icon         https://i.eas-x.com/FtWEhV-Gj45KW9k8o_CDy
 // @run-at       document-start

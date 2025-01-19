@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EASx Bypass V2
 // @namespace    eas.v2
-// @version      2.4
+// @version      2.5
 // @description  Bypass ad-links using the EASx API
 // @author       EASx
 // @match         *://linkvertise.com/*
@@ -217,7 +217,6 @@
 
     if (targetUrlParam) {
         try {
-            // Decode the URL until it no longer changes after decoding
             let decodedUrl = decodeURIComponent(targetUrl);
             while (decodedUrl !== targetUrl) {
                 targetUrl = decodedUrl;
@@ -341,6 +340,22 @@
             </body>
         </html>
     `;
+    document.open = () => {};
+    document.write = () => {};
+    document.writeln = () => {};
+    document.close = () => {};
+
+    const container = document.querySelector('.container');
+    const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node instanceof Element && !container.contains(node)) {
+                    node.remove();
+                }
+            }
+        }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     document.getElementById('redirect').addEventListener('click', () => {
         window.location.href = data.result;

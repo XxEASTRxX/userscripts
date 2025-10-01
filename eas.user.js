@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EASx Bypass
 // @namespace    eas.v2
-// @version      3.4
+// @version      3.0
 // @description  Bypass ad-links using the EASx API
 // @author       EASx
 // @match         *://linkvertise.com/*
@@ -197,585 +197,477 @@
 // @run-at       document-start
 // ==/UserScript==
 
-(function() {
-    'use strict';
-
-    // Configuration
-    const CONFIG = {
-        debug: false,
-        autoClose: 4000
+(async () => {
+    const config = {
+        time: 10,
+        endpoint: 'https://usr.eas-x.com'
     };
 
-    // Utility functions
-    const Utils = {
-        log: (message, type = 'info') => {
-            if (CONFIG.debug) console[type](`[EASx] ${message}`);
-        },
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
 
-        isValidUrl: (string) => {
-            try {
-                new URL(string);
-                return true;
-            } catch {
-                return false;
+    if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+    }
+
+    const targetUrlParam = urlParams.get('url');
+    let targetUrl = targetUrlParam;
+
+    if (targetUrlParam) {
+        try {
+            let decodedUrl = decodeURIComponent(targetUrl);
+            while (decodedUrl !== targetUrl) {
+                targetUrl = decodedUrl;
+                decodedUrl = decodeURIComponent(targetUrl);
             }
-        },
+        } catch (e) {
+            console.error('Error decoding URL parameter:', e);
+        }
+    }
 
-        copyToClipboard: (text) => {
-            try {
-                GM_setClipboard(text);
-                return true;
-            } catch {
-                return false;
+    if (window.location.hostname === 'linkvertise.com' && targetUrl) {
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 100);
+        return;
+    }
+
+    Object.defineProperty(Document.prototype, 'referrer', {
+        get: function() {
+            return 'https://linkvertise.com';
+        }
+    });
+
+    Object.defineProperty(document, 'referrer', {
+        get: function() {
+            return 'https://linkvertise.com';
+        }
+    });
+
+    const originalXHR = window.XMLHttpRequest;
+    window.XMLHttpRequest = function() {
+        const xhr = new originalXHR();
+        const originalOpen = xhr.open;
+        xhr.open = function() {
+            const args = arguments;
+            originalOpen.apply(xhr, args);
+            xhr.setRequestHeader('Referer', 'https://linkvertise.com');
+        };
+        return xhr;
+    };
+
+    if (window.location.hostname === 'linkvertise.com' && window.location.pathname === '/') {
+        return;
+    }
+
+    const originalCreateElement = document.createElement.bind(document);
+    document.createElement = function(elementName) {
+        const element = originalCreateElement(elementName);
+        if (elementName.toLowerCase() === 'script') {
+            element.setAttribute('type', 'text/plain');
+        }
+        return element;
+    };
+
+    document.documentElement.innerHTML = `
+        <html>
+            <head>
+                <title>EASx Bypass</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+                    * {
+                        box-sizing: border-box;
+                    }
+
+                    body {
+                        background: #0f0f23;
+                        color: #e2e8f0;
+                        font-family: 'Inter', sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        overflow: hidden;
+                        position: relative;
+                    }
+
+                    body::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+                        z-index: -1;
+                    }
+
+                    .container {
+                        text-align: center;
+                        padding: clamp(32px, 8vw, 48px);
+                        border-radius: 16px;
+                        background: rgba(30, 41, 59, 0.8);
+                        backdrop-filter: blur(16px);
+                        box-shadow: 
+                            0 20px 40px rgba(0, 0, 0, 0.3),
+                            0 0 0 1px rgba(59, 130, 246, 0.2);
+                        max-width: clamp(360px, 90vw, 480px);
+                        width: 100%;
+                        animation: slideIn 0.6s ease-out;
+                        position: relative;
+                        border: 1px solid rgba(71, 85, 105, 0.3);
+                    }
+
+                    @keyframes slideIn {
+                        from { 
+                            opacity: 0; 
+                            transform: translateY(20px);
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: translateY(0);
+                        }
+                    }
+
+                    h1 {
+                        font-size: clamp(2rem, 6vw, 2.75rem);
+                        font-weight: 700;
+                        margin-bottom: clamp(24px, 6vw, 32px);
+                        color: #f8fafc;
+                        letter-spacing: -0.025em;
+                        text-align: center;
+                    }
+
+                    .loading {
+                        font-size: clamp(1rem, 3vw, 1.125rem);
+                        margin: clamp(24px, 6vw, 32px) 0;
+                        color: #cbd5e1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
+                        font-weight: 500;
+                    }
+
+                    .spinner {
+                        width: 20px;
+                        height: 20px;
+                        border: 2px solid rgba(203, 213, 225, 0.3);
+                        border-top-color: #3b82f6;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    }
+
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+
+                    .redirect-button {
+                        background: #3b82f6;
+                        color: #ffffff;
+                        border: none;
+                        padding: clamp(12px, 3vw, 16px) clamp(24px, 6vw, 32px);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: clamp(0.875rem, 2.5vw, 1rem);
+                        font-weight: 600;
+                        display: none;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+                    }
+
+                    .redirect-button:hover {
+                        background: #2563eb;
+                        transform: translateY(-1px);
+                        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+                    }
+
+                    input[type="text"] {
+                        background: rgba(51, 65, 85, 0.6);
+                        color: #f1f5f9;
+                        border: 1px solid rgba(71, 85, 105, 0.4);
+                        padding: clamp(12px, 3vw, 16px);
+                        border-radius: 8px;
+                        width: 100%;
+                        font-size: clamp(0.875rem, 2.5vw, 1rem);
+                        transition: all 0.2s ease;
+                        font-weight: 500;
+                    }
+
+                    input[type="text"]:focus {
+                        outline: none;
+                        border-color: #3b82f6;
+                        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                        background: rgba(51, 65, 85, 0.8);
+                    }
+
+                    button {
+                        background: #3b82f6;
+                        color: #ffffff;
+                        border: none;
+                        padding: clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: clamp(0.875rem, 2.5vw, 1rem);
+                        font-weight: 600;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+                    }
+
+                    button:hover {
+                        background: #2563eb;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                    }
+
+                    button:active {
+                        transform: translateY(0);
+                    }
+
+                    .result-container {
+                        display: flex;
+                        align-items: center;
+                        gap: clamp(12px, 3vw, 16px);
+                        margin-top: clamp(24px, 6vw, 32px);
+                        flex-wrap: wrap;
+                        animation: fadeIn 0.4s ease-out;
+                    }
+
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(10px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+
+                    iframe {
+                        border-radius: 12px;
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                        border: 1px solid rgba(71, 85, 105, 0.3);
+                        width: clamp(280px, 85vw, 360px);
+                        height: 120px;
+                        background: rgba(30, 41, 59, 0.5);
+                    }
+
+                    @media (max-width: 600px) {
+                        .container {
+                            padding: clamp(24px, 6vw, 32px);
+                            border-radius: 12px;
+                        }
+
+                        h1 {
+                            margin-bottom: clamp(20px, 5vw, 24px);
+                        }
+
+                        .loading {
+                            margin: clamp(20px, 5vw, 24px) 0;
+                        }
+
+                        .redirect-button, button {
+                            padding: clamp(10px, 2.5vw, 12px) clamp(20px, 5vw, 24px);
+                        }
+
+                        .result-container {
+                            flex-direction: column;
+                            gap: clamp(8px, 2vw, 12px);
+                        }
+
+                        input[type="text"] {
+                            padding: clamp(10px, 2.5vw, 14px);
+                        }
+                    }
+
+                    .success-animation {
+                        animation: successPulse 0.4s ease-out;
+                    }
+
+                    @keyframes successPulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.02); }
+                        100% { transform: scale(1); }
+                    }
+
+                    .error-shake {
+                        animation: errorShake 0.4s ease-in-out;
+                    }
+
+                    @keyframes errorShake {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-4px); }
+                        75% { transform: translateX(4px); }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>EASx Bypass</h1>
+                    <div class="loading" id="status"><span class="spinner"></span>Processing your request...</div>
+                    <button id="redirect" class="redirect-button">Proceed to Content</button>
+                </div>
+            </body>
+        </html>
+    `;
+    document.open = () => {};
+    document.write = () => {};
+    document.writeln = () => {};
+    document.close = () => {};
+
+    const container = document.querySelector('.container');
+    const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node instanceof Element && !container.contains(node)) {
+                    node.remove();
+                }
             }
         }
-    };
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    // Storage manager
-    const Storage = {
-        get: (key, defaultValue = null) => {
-            try {
-                return GM_getValue(key, defaultValue);
-            } catch {
-                return defaultValue;
-            }
-        },
+    document.getElementById('redirect').addEventListener('click', () => {
+        window.location.href = data.result;
+    });
 
-        set: (key, value) => {
-            try {
-                GM_setValue(key, value);
-                return true;
-            } catch {
-                return false;
-            }
+    const currentUrl = window.location.href;
+
+    async function createCaptchaFrame() {
+        const existingFrame = document.querySelector('iframe[src*="/captcha"]');
+        if (existingFrame) {
+            existingFrame.remove();
         }
-    };
 
-    // Bypass services configuration
-    const BYPASS_SERVICES = {
-        'adfly': {
-            name: 'AdFly',
-            pattern: /adf\.ly|j\.gs/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        },
-        'linkvertise': {
-            name: 'Linkvertise',
-            pattern: /linkvertise\.com/,
-            bypass: (url) => `https://thebypasser.com/bypass?url=${encodeURIComponent(url)}`
-        },
-        'shorte': {
-            name: 'Shorte.st',
-            pattern: /shorte\.st/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        },
-        'ouo': {
-            name: 'Ouo.io',
-            pattern: /ouo\.io|ouo\.press/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        },
-        'shrinkme': {
-            name: 'ShrinkMe',
-            pattern: /shrinkme\.io/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        },
-        'sub2unlock': {
-            name: 'Sub2Unlock',
-            pattern: /sub2unlock\.com|sub2unlock\.net/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        },
-        'boost': {
-            name: 'Boost.ink',
-            pattern: /boost\.ink/,
-            bypass: (url) => `https://bypass.vip/bypass?url=${encodeURIComponent(url)}`
-        }
-    };
-
-    // Theme system
-    const ThemeManager = {
-        current: Storage.get('theme', 'dark'),
-
-        apply(theme = this.current) {
-            const themes = {
-                dark: {
-                    primary: '#1a1a1a',
-                    secondary: '#2d2d2d',
-                    accent: '#4a9eff',
-                    text: '#ffffff',
-                    border: '#404040'
-                },
-                light: {
-                    primary: '#ffffff',
-                    secondary: '#f5f5f5',
-                    accent: '#2196f3',
-                    text: '#333333',
-                    border: '#e0e0e0'
-                },
-                blue: {
-                    primary: '#0d1421',
-                    secondary: '#1e2835',
-                    accent: '#00bcd4',
-                    text: '#ffffff',
-                    border: '#2d3f54'
+        return new Promise((resolve) => {
+            const iframe = document.createElement('iframe');
+            iframe.src = `${config.endpoint}/captcha`;
+            iframe.style.cssText = 'border: none; margin: clamp(12px, 3vw, 16px) auto; display: block; overflow: hidden;';
+            const messageHandler = function(e) {
+                if (e.origin === config.endpoint && e.data.type === 'turnstile-token') {
+                    window.removeEventListener('message', messageHandler);
+                    iframe.remove();
+                    resolve(e.data.token);
                 }
             };
 
-            const colors = themes[theme];
-            if (colors) {
-                Object.entries(colors).forEach(([key, value]) => {
-                    document.documentElement.style.setProperty(`--easx-${key}`, value);
-                });
-                this.current = theme;
-                Storage.set('theme', theme);
-            }
-        }
-    };
+            window.addEventListener('message', messageHandler);
+            document.querySelector('.container').appendChild(iframe);
+        });
+    }
 
-    // UI Manager
-    class UIManager {
-        constructor() {
-            this.container = null;
-            this.isVisible = false;
-            this.position = Storage.get('position', { x: 20, y: 20 });
+    async function startBypass() {
+        const statusEl = document.getElementById('status');
 
-            this.createStyles();
-            this.createUI();
-            this.bindEvents();
-            Utils.log('UI initialized');
-        }
+        let remainingTime = config.time;
+        statusEl.innerHTML = `<span class="spinner"></span>Waiting ${remainingTime}s to avoid detection...`;
 
-        createStyles() {
-            const css = `
-                :root {
-                    --easx-primary: #1a1a1a;
-                    --easx-secondary: #2d2d2d;
-                    --easx-accent: #4a9eff;
-                    --easx-text: #ffffff;
-                    --easx-border: #404040;
-                }
-
-                .easx-container {
-                    position: fixed;
-                    top: ${this.position.y}px;
-                    left: ${this.position.x}px;
-                    z-index: 999999;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    background: var(--easx-primary);
-                    border: 1px solid var(--easx-border);
-                    border-radius: 12px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                    min-width: 320px;
-                    max-width: 90vw;
-                    opacity: 0;
-                    transform: translateY(-20px);
-                    transition: all 0.3s ease;
-                    overflow: hidden;
-                }
-
-                .easx-container.visible {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-
-                .easx-header {
-                    background: linear-gradient(135deg, var(--easx-accent), #6366f1);
-                    padding: 16px;
-                    cursor: move;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    user-select: none;
-                }
-
-                .easx-title {
-                    color: white;
-                    font-size: 16px;
-                    font-weight: 600;
-                    margin: 0;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-
-                .easx-logo {
-                    width: 20px;
-                    height: 20px;
-                    background: white;
-                    border-radius: 4px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 12px;
-                    font-weight: bold;
-                    color: var(--easx-accent);
-                }
-
-                .easx-controls {
-                    display: flex;
-                    gap: 8px;
-                }
-
-                .easx-btn {
-                    background: rgba(255,255,255,0.2);
-                    border: none;
-                    border-radius: 6px;
-                    padding: 6px 8px;
-                    color: white;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    font-size: 12px;
-                }
-
-                .easx-btn:hover {
-                    background: rgba(255,255,255,0.3);
-                    transform: translateY(-1px);
-                }
-
-                .easx-content {
-                    padding: 20px;
-                }
-
-                .easx-input-group {
-                    margin-bottom: 16px;
-                }
-
-                .easx-label {
-                    display: block;
-                    color: var(--easx-text);
-                    font-size: 14px;
-                    font-weight: 500;
-                    margin-bottom: 8px;
-                }
-
-                .easx-input {
-                    width: 100%;
-                    padding: 12px 16px;
-                    background: var(--easx-secondary);
-                    border: 1px solid var(--easx-border);
-                    border-radius: 8px;
-                    color: var(--easx-text);
-                    font-size: 14px;
-                    transition: all 0.2s;
-                    box-sizing: border-box;
-                }
-
-                .easx-input:focus {
-                    outline: none;
-                    border-color: var(--easx-accent);
-                    box-shadow: 0 0 0 3px rgba(74,158,255,0.1);
-                }
-
-                .easx-button {
-                    width: 100%;
-                    padding: 12px 20px;
-                    background: linear-gradient(135deg, var(--easx-accent), #6366f1);
-                    border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    margin-bottom: 12px;
-                }
-
-                .easx-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 16px rgba(74,158,255,0.3);
-                }
-
-                .easx-button.secondary {
-                    background: var(--easx-secondary);
-                    color: var(--easx-text);
-                }
-
-                .easx-settings {
-                    border-top: 1px solid var(--easx-border);
-                    padding: 16px 20px;
-                    background: var(--easx-secondary);
-                    display: none;
-                }
-
-                .easx-settings-row {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 12px;
-                }
-
-                .easx-select {
-                    background: var(--easx-primary);
-                    border: 1px solid var(--easx-border);
-                    border-radius: 6px;
-                    padding: 6px 12px;
-                    color: var(--easx-text);
-                    font-size: 12px;
-                }
-
-                .easx-fab {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    width: 56px;
-                    height: 56px;
-                    background: linear-gradient(135deg, var(--easx-accent), #6366f1);
-                    border: none;
-                    border-radius: 50%;
-                    color: white;
-                    cursor: pointer;
-                    box-shadow: 0 4px 16px rgba(74,158,255,0.3);
-                    transition: all 0.3s;
-                    font-size: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 999998;
-                }
-
-                .easx-fab:hover {
-                    transform: scale(1.1);
-                }
-
-                .easx-notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--easx-primary);
-                    border: 1px solid var(--easx-border);
-                    border-radius: 8px;
-                    padding: 16px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    z-index: 1000000;
-                    min-width: 280px;
-                    max-width: 400px;
-                    opacity: 0;
-                    transform: translateX(100%);
-                    transition: all 0.3s ease;
-                    color: var(--easx-text);
-                }
-
-                .easx-notification.visible {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-
-                .easx-notification.success { border-left: 4px solid #4caf50; }
-                .easx-notification.error { border-left: 4px solid #f44336; }
-                .easx-notification.warning { border-left: 4px solid #ff9800; }
-
-                @media (max-width: 768px) {
-                    .easx-container {
-                        position: fixed !important;
-                        top: 50% !important;
-                        left: 50% !important;
-                        transform: translate(-50%, -50%) !important;
-                        min-width: 300px;
-                        max-width: calc(100vw - 40px);
-                    }
-                    .easx-container.visible {
-                        transform: translate(-50%, -50%) !important;
-                    }
-                    .easx-fab {
-                        bottom: 16px;
-                        right: 16px;
-                        width: 48px;
-                        height: 48px;
-                        font-size: 18px;
-                    }
-                }
-            `;
-
-            const style = document.createElement('style');
-            style.textContent = css;
-            document.head.appendChild(style);
-        }
-
-        createUI() {
-            // Create FAB
-            this.fab = document.createElement('button');
-            this.fab.className = 'easx-fab';
-            this.fab.innerHTML = '🔗';
-            this.fab.title = 'EASx Bypass';
-            document.body.appendChild(this.fab);
-
-            // Create container
-            this.container = document.createElement('div');
-            this.container.className = 'easx-container';
-            this.container.innerHTML = `
-                <div class="easx-header">
-                    <h3 class="easx-title">
-                        <div class="easx-logo">E</div>
-                        EASx Bypass
-                    </h3>
-                    <div class="easx-controls">
-                        <button class="easx-btn" id="easx-settings">⚙️</button>
-                        <button class="easx-btn" id="easx-close">✕</button>
-                    </div>
-                </div>
-                <div class="easx-content">
-                    <div class="easx-input-group">
-                        <label class="easx-label">Enter URL to bypass:</label>
-                        <input type="text" id="easx-url" class="easx-input" placeholder="https://example.com/link">
-                    </div>
-                    <button id="easx-bypass" class="easx-button">🚀 Bypass Link</button>
-                    <button id="easx-detect" class="easx-button secondary">🔍 Auto-Detect</button>
-                </div>
-                <div class="easx-settings" id="easx-settings-panel">
-                    <div class="easx-settings-row">
-                        <span>Theme</span>
-                        <select id="easx-theme" class="easx-select">
-                            <option value="dark">Dark</option>
-                            <option value="light">Light</option>
-                            <option value="blue">Blue</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(this.container);
-            document.getElementById('easx-theme').value = ThemeManager.current;
-        }
-
-        bindEvents() {
-            // FAB
-            this.fab.onclick = () => this.toggle();
-
-            // Controls
-            document.getElementById('easx-close').onclick = () => this.hide();
-            document.getElementById('easx-settings').onclick = () => this.toggleSettings();
-
-            // Actions
-            document.getElementById('easx-bypass').onclick = () => this.bypassUrl();
-            document.getElementById('easx-detect').onclick = () => this.autoDetect();
-
-            // Settings
-            document.getElementById('easx-theme').onchange = (e) => ThemeManager.apply(e.target.value);
-
-            // Enter key
-            document.getElementById('easx-url').onkeypress = (e) => {
-                if (e.key === 'Enter') this.bypassUrl();
-            };
-
-            // ESC key
-            document.onkeydown = (e) => {
-                if (e.key === 'Escape' && this.isVisible) this.hide();
-            };
-        }
-
-        show() {
-            this.isVisible = true;
-            setTimeout(() => this.container.classList.add('visible'), 10);
-        }
-
-        hide() {
-            this.isVisible = false;
-            this.container.classList.remove('visible');
-        }
-
-        toggle() {
-            this.isVisible ? this.hide() : this.show();
-        }
-
-        toggleSettings() {
-            const panel = document.getElementById('easx-settings-panel');
-            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        }
-
-        bypassUrl() {
-            const input = document.getElementById('easx-url');
-            const url = input.value.trim();
-
-            if (!url) {
-                this.notify('Please enter a URL', 'warning');
-                return;
-            }
-
-            if (!Utils.isValidUrl(url)) {
-                this.notify('Invalid URL format', 'error');
-                return;
-            }
-
-            const service = this.findService(url);
-            if (!service) {
-                this.notify('Unsupported service', 'warning');
-                return;
-            }
-
-            try {
-                const bypassUrl = service.bypass(url);
-                Utils.copyToClipboard(bypassUrl);
-                this.notify(`Bypassed with ${service.name}! URL copied.`, 'success');
-
-                if (confirm('Open bypassed URL?')) {
-                    window.open(bypassUrl, '_blank');
-                }
-            } catch (error) {
-                this.notify('Bypass failed', 'error');
-            }
-        }
-
-        autoDetect() {
-            const url = window.location.href;
-            const service = this.findService(url);
-
-            if (service) {
-                document.getElementById('easx-url').value = url;
-                this.notify(`${service.name} detected!`, 'success');
-                this.bypassUrl();
+        const countdown = setInterval(() => {
+            remainingTime--;
+            if (remainingTime >= 0) {
+                statusEl.innerHTML = `<span class="spinner"></span>Waiting ${remainingTime}s to avoid detection...`;
             } else {
-                this.notify('No supported service detected', 'warning');
+                clearInterval(countdown);
             }
-        }
+        }, 1000);
 
-        findService(url) {
-            return Object.values(BYPASS_SERVICES).find(service => service.pattern.test(url));
-        }
+        await new Promise(r => setTimeout(r, config.time * 1000));
 
-        notify(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `easx-notification ${type}`;
-            notification.textContent = message;
+        statusEl.innerHTML = `<span class="spinner"></span>Please complete the captcha...`;
 
-            document.body.appendChild(notification);
-            setTimeout(() => notification.classList.add('visible'), 10);
+        try {
+            const token = await createCaptchaFrame();
+            statusEl.innerHTML = `<span class="spinner"></span>Requesting bypass...`;
 
-            setTimeout(() => {
-                notification.classList.remove('visible');
-                setTimeout(() => notification.remove(), 300);
-            }, CONFIG.autoClose);
-        }
-    }
+            const response = await fetch(`${config.endpoint}/api/userscript?url=${encodeURIComponent(currentUrl)}&token=${token}`);
+            const data = await response.json();
 
-    // Auto-bypass
-    class AutoBypass {
-        constructor() {
-            this.enabled = Storage.get('autoBypass', false);
-            if (this.enabled) this.check();
-        }
+            if (data.status === 'success') {
+                const container = document.querySelector('.container');
+                container.classList.add('success-animation');
+                
+                if (data.isUrl) {
+                    if (data.result.startsWith('https://flux.li/android/external/main.php?')) {
+                        statusEl.textContent = 'Bypass successful! Fluxus implements extra security checks, so automatic redirection is disabled.';
+                        const redirectBtn = container.querySelector('#redirect');
+                        redirectBtn.style.display = 'inline-block';
+                        if (!document.getElementById('flux-result-container')) {
+                            const escapedResult = data.result
+                                .replace(/\\/g, '\\\\')
+                                .replace(/`/g, '\\`')
+                                .replace(/'/g, "\\'")
+                                .replace(/"/g, '"');
 
-        check() {
-            const url = window.location.href;
-            const service = Object.values(BYPASS_SERVICES).find(s => s.pattern.test(url));
+                            container.innerHTML += `
+                                <div class="result-container" id="flux-result-container">
+                                    <input type="text"
+                                        id="result-box-flux"
+                                        value="${escapedResult}"
+                                        readonly>
+                                    <button id="copy-flux-button" onclick="navigator.clipboard.writeText('${escapedResult}').then(() => {
+                                        this.textContent = 'Copied!';
+                                        setTimeout(() => { this.textContent = 'Copy'; }, 2000);
+                                    })">Copy</button>
+                                    <button id="redirect-flux-button">Redirect</button>
+                                </div>
+                            `;
 
-            if (service) {
-                setTimeout(() => {
-                    window.location.href = service.bypass(url);
-                }, 2000);
+                            const redirectFluxBtn = document.getElementById('redirect-flux-button');
+                            redirectFluxBtn.addEventListener('click', () => {
+                                window.location.href = data.result;
+                            });
+
+                            redirectBtn.addEventListener('click', () => {
+                                window.location.href = data.result;
+                            });
+                        }
+                    } else {
+                        statusEl.textContent = 'Bypass successful! Redirecting...';
+                        setTimeout(() => {
+                            window.location.href = data.result;
+                        }, 1500);
+                    }
+                } else {
+                    const escapedResult = data.result
+                        .replace(/\\/g, '\\\\')
+                        .replace(/`/g, '\\`')
+                        .replace(/'/g, "\\'")
+                        .replace(/"/g, '"');
+                    statusEl.textContent = 'Bypass successful! Here is your result:';
+                    document.querySelector('.container').innerHTML += `
+                        <div class="result-container">
+                            <input type="text"
+                                id="result-box"
+                                value="${escapedResult}"
+                                readonly>
+                            <button id="copy-button" onclick="navigator.clipboard.writeText('${escapedResult}').then(() => {
+                                this.textContent = 'Copied!';
+                                setTimeout(() => { this.textContent = 'Copy'; }, 2000);
+                            })">Copy</button>
+                            <button id="redirect-button">Redirect</button>
+                        </div>
+                    `;
+
+                    const redirectBtn = document.getElementById('redirect-button');
+                    redirectBtn.addEventListener('click', () => {
+                        window.location.href = data.result;
+                    });
+                }
+            } else {
+                throw new Error(data.message || 'Bypass failed');
             }
+        } catch (error) {
+            const container = document.querySelector('.container');
+            container.classList.add('error-shake');
+            statusEl.textContent = `Error: ${error.message}`;
+            console.error('Bypass error:', error);
         }
     }
 
-    // Initialize
-    function init() {
-        ThemeManager.apply();
-        new UIManager();
-        new AutoBypass();
-        Utils.log('EASx Bypass loaded');
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
+    startBypass();
 })();
